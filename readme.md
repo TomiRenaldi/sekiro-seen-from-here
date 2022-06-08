@@ -1,6 +1,6 @@
 # Sekiro Seen From Here
 
--[Github](https://github.com/TomiRenaldi/sekiro-seen-from-here)
+- [Github](https://github.com/TomiRenaldi/sekiro-seen-from-here)
 
 ## Setup
 Download [Node.js](https://nodejs.org/en/download/).
