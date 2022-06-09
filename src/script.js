@@ -5,7 +5,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import vertexGrassShader from './shaders/planeGrass/vertex.glsl'
 import fragmentGrassShader from './shaders/planeGrass/fragment.glsl'
 
-
 /**
  * Base
  */
@@ -51,6 +50,11 @@ const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
 
 /**
+ * Lights
+ */
+const light = {}
+
+/**
  * Plane
  */
 const plane = {}
@@ -83,8 +87,8 @@ scene.add(plane.mesh)
 for(let i = 0; i < plane.instance.number; i++)
 {
     plane.instance.dummy.position.set(
-        (Math.random() - 0.5) * 8, 0,
-        (Math.random() - 0.5) * 8,
+        (Math.random() - 0.5) * 10, 0,
+        (Math.random() - 0.5) * 10,
     )
 
     plane.instance.dummy.scale.setScalar(0.5 + Math.random() * 0.5)
@@ -99,13 +103,26 @@ for(let i = 0; i < plane.instance.number; i++)
  */
 const ground = {}
 
-ground.geometry = new THREE.PlaneGeometry(25, 25)
-ground.geometry.rotateX(Math.PI * 0.5)
+ground.texture = {}
 
-ground.material = new THREE.MeshBasicMaterial({ color: '#ffffff', side: THREE.DoubleSide })
+ground.texture.color = new THREE.TextureLoader().load('./texture/GroundForest003COL.jpg')
+ground.texture.color.encoding = THREE.sRGBEncoding
+ground.texture.color.wrapS = THREE.RepeatWrapping
+ground.texture.color.wrapT = THREE.RepeatWrapping
+
+ground.geometry = new THREE.PlaneGeometry(10, 10, 500, 500)
+ground.geometry.rotateX(- Math.PI * 0.5)
+
+ground.material = new THREE.MeshBasicMaterial({
+    map: ground.texture.color
+})
 
 ground.mesh = new THREE.Mesh(ground.geometry, ground.material)
+ground.mesh.scale.set(5, 5, 5)
+ground.mesh.receiveShadow = true
 scene.add(ground.mesh)
+
+
 
 /**
  * Renderer
