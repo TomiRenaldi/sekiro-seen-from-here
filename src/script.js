@@ -1,6 +1,7 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { Sky } from 'three/examples/jsm/objects/Sky.js'
 
 import vertexGrassShader from './shaders/planeGrass/vertex.glsl'
 import fragmentGrassShader from './shaders/planeGrass/fragment.glsl'
@@ -13,6 +14,8 @@ const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
+
+const sky = new Sky()
 
 /**
  * Sizes
@@ -52,7 +55,7 @@ controls.enableDamping = true
 /**
  * Lights
  */
-const light = {}
+const lights = {}
 
 /**
  * Plane
@@ -66,7 +69,6 @@ plane.instance.dummy = new THREE.Object3D()
 
 // Material
 plane.material = new THREE.ShaderMaterial({
-    transparent: true,
     side: THREE.DoubleSide,
     vertexShader: vertexGrassShader, 
     fragmentShader: fragmentGrassShader,
@@ -76,12 +78,12 @@ plane.material = new THREE.ShaderMaterial({
 })
 
 // Geometry
-plane.geometry = new THREE.PlaneGeometry(0.1, 1, 1, 4)
+plane.geometry = new THREE.PlaneGeometry(0.1, 1, 10, 10)
 plane.geometry.translate(0, 0.5, 0)
 
 // Mesh
 plane.mesh = new THREE.InstancedMesh(plane.geometry, plane.material, plane.instance.number)
-plane.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+plane.mesh.receiveShadow = true
 scene.add(plane.mesh)
 
 for(let i = 0; i < plane.instance.number; i++)
@@ -109,20 +111,22 @@ ground.texture.color = new THREE.TextureLoader().load('./texture/GroundForest003
 ground.texture.color.encoding = THREE.sRGBEncoding
 ground.texture.color.wrapS = THREE.RepeatWrapping
 ground.texture.color.wrapT = THREE.RepeatWrapping
+ground.texture.color.repeat.set(1, 1)
 
-ground.geometry = new THREE.PlaneGeometry(10, 10, 500, 500)
+ground.geometry = new THREE.PlaneGeometry(5, 5, 500, 500)
 ground.geometry.rotateX(- Math.PI * 0.5)
 
-ground.material = new THREE.MeshBasicMaterial({
-    map: ground.texture.color
+ground.material = new THREE.MeshStandardMaterial({
+    map: ground.texture.color,
+    roughness: 0.8,
+    metalness: 0.2,
+    bumpScale: 0.0005
 })
 
 ground.mesh = new THREE.Mesh(ground.geometry, ground.material)
 ground.mesh.scale.set(5, 5, 5)
 ground.mesh.receiveShadow = true
 scene.add(ground.mesh)
-
-
 
 /**
  * Renderer
@@ -132,6 +136,10 @@ const renderer = new THREE.WebGLRenderer({
     antialias: true,
 })
 
+renderer.physicallyCorrectLights = true
+renderer.outputEncoding = THREE.sRGBEncoding
+renderer.shadowMap.enabled = true
+renderer.toneMapping = THREE.ReinhardToneMapping
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
