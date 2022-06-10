@@ -15,8 +15,6 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 
-const sky = new Sky()
-
 /**
  * Sizes
  */
@@ -89,8 +87,8 @@ scene.add(plane.mesh)
 for(let i = 0; i < plane.instance.number; i++)
 {
     plane.instance.dummy.position.set(
-        (Math.random() - 0.5) * 10, 0,
-        (Math.random() - 0.5) * 10,
+        (Math.random() - 0.5) * 20, 0,
+        (Math.random() - 0.5) * 20,
     )
 
     plane.instance.dummy.scale.setScalar(0.5 + Math.random() * 0.5)
@@ -142,6 +140,36 @@ renderer.shadowMap.enabled = true
 renderer.toneMapping = THREE.ReinhardToneMapping
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+const sun = new THREE.Vector3()
+
+/**
+ * Sky
+ */
+const sky = new Sky()
+sky.scale.setScalar(10000)
+scene.add(sky)
+
+const skyUniforms = sky.material.uniforms
+
+skyUniforms[ 'turbidity' ].value = 10
+skyUniforms[ 'rayleigh' ].value = 2
+skyUniforms[ 'mieCoefficient' ].value = 0.005
+skyUniforms[ 'mieDirectionalG' ].value = 0.8
+
+const parameters = {
+	elevation: 2,
+	azimuth: 180
+}
+
+const pmremGenerator = new THREE.PMREMGenerator(renderer)
+
+const phi = THREE.MathUtils.degToRad(90 - parameters.elevation)
+const theta = THREE.MathUtils.degToRad(parameters.azimuth)
+
+sun.setFromSphericalCoords(1, phi, theta)
+sky.material.uniforms[ 'sunPosition' ].value.copy(sun)
+scene.environment = pmremGenerator.fromScene(sky).texture
 
 /**
  * Animate
