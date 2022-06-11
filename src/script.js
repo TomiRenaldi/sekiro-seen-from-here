@@ -127,6 +127,12 @@ ground.mesh.receiveShadow = true
 scene.add(ground.mesh)
 
 /**
+ * Sekiro
+ */
+
+
+
+/**
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
@@ -137,7 +143,8 @@ const renderer = new THREE.WebGLRenderer({
 renderer.physicallyCorrectLights = true
 renderer.outputEncoding = THREE.sRGBEncoding
 renderer.shadowMap.enabled = true
-renderer.toneMapping = THREE.ReinhardToneMapping
+renderer.toneMapping = THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure = 0.1
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
@@ -152,13 +159,13 @@ scene.add(sky)
 
 const skyUniforms = sky.material.uniforms
 
-skyUniforms[ 'turbidity' ].value = 10
-skyUniforms[ 'rayleigh' ].value = 2
+skyUniforms[ 'turbidity' ].value = 0.1
+skyUniforms[ 'rayleigh' ].value = 0.018
 skyUniforms[ 'mieCoefficient' ].value = 0.005
 skyUniforms[ 'mieDirectionalG' ].value = 0.8
 
 const parameters = {
-	elevation: 2,
+	elevation: 10.8,
 	azimuth: 180
 }
 
