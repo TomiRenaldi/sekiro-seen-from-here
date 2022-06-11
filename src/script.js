@@ -1,10 +1,8 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { Sky } from 'three/examples/jsm/objects/Sky.js'
-
-import vertexGrassShader from './shaders/planeGrass/vertex.glsl'
-import fragmentGrassShader from './shaders/planeGrass/fragment.glsl'
 
 /**
  * Base
@@ -43,7 +41,7 @@ window.addEventListener('resize', () =>
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(0, 5, 10)
+camera.position.set(-6, 2, 12)
 scene.add(camera)
 
 // Controls
@@ -53,84 +51,59 @@ controls.enableDamping = true
 /**
  * Lights
  */
-const lights = {}
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444)
+hemiLight.position.set(0, 20, 0)
+scene.add(hemiLight)
 
-/**
- * Plane
- */
-const plane = {}
-
-plane.instance = {}
-
-plane.instance.number = 10000
-plane.instance.dummy = new THREE.Object3D()
-
-// Material
-plane.material = new THREE.ShaderMaterial({
-    side: THREE.DoubleSide,
-    vertexShader: vertexGrassShader, 
-    fragmentShader: fragmentGrassShader,
-    uniforms: {
-        uTime: { value: 0 },
-    } 
-})
-
-// Geometry
-plane.geometry = new THREE.PlaneGeometry(0.1, 1, 10, 10)
-plane.geometry.translate(0, 0.5, 0)
-
-// Mesh
-plane.mesh = new THREE.InstancedMesh(plane.geometry, plane.material, plane.instance.number)
-plane.mesh.receiveShadow = true
-scene.add(plane.mesh)
-
-for(let i = 0; i < plane.instance.number; i++)
-{
-    plane.instance.dummy.position.set(
-        (Math.random() - 0.5) * 20, 0,
-        (Math.random() - 0.5) * 20,
-    )
-
-    plane.instance.dummy.scale.setScalar(0.5 + Math.random() * 0.5)
-    plane.instance.dummy.rotation.y = Math.random() * Math.PI
-
-    plane.instance.dummy.updateMatrix()
-    plane.mesh.setMatrixAt(i, plane.instance.dummy.matrix)
-}
+const dirLight = new THREE.DirectionalLight(0xffffff, 11)
+dirLight.position.set( - 3, 10, - 10 )
+dirLight.castShadow = true
+dirLight.shadow.camera.top = 5
+dirLight.shadow.camera.bottom = - 5
+dirLight.shadow.camera.left = - 5
+dirLight.shadow.camera.right = 5
+dirLight.shadow.camera.near = 0.1
+dirLight.shadow.camera.far = 50
+scene.add(dirLight)
 
 /**
  * Ground
  */
 const ground = {}
 
-ground.texture = {}
-
-ground.texture.color = new THREE.TextureLoader().load('./texture/GroundForest003COL.jpg')
-ground.texture.color.encoding = THREE.sRGBEncoding
-ground.texture.color.wrapS = THREE.RepeatWrapping
-ground.texture.color.wrapT = THREE.RepeatWrapping
-ground.texture.color.repeat.set(1, 1)
-
-ground.geometry = new THREE.PlaneGeometry(5, 5, 500, 500)
+ground.geometry = new THREE.PlaneGeometry(100, 100)
 ground.geometry.rotateX(- Math.PI * 0.5)
 
 ground.material = new THREE.MeshStandardMaterial({
-    map: ground.texture.color,
+    color: '#00030f',
     roughness: 0.8,
-    metalness: 0.2,
-    bumpScale: 0.0005
+    metalness: 0.5,
+    bumpScale: 0.005
 })
 
 ground.mesh = new THREE.Mesh(ground.geometry, ground.material)
-ground.mesh.scale.set(5, 5, 5)
+ground.mesh.scale.set(10, 10, 10)
 ground.mesh.receiveShadow = true
 scene.add(ground.mesh)
 
 /**
- * Sekiro
+ * Model
  */
-
-
+const model = {}
+model.scale = 0.017
+model.loader = new GLTFLoader()
+model.loader.load('./model/sekiro.glb', (gltf) => {
+    const sekiro = gltf.scene
+    sekiro.scale.set(model.scale, model.scale, model.scale)
+    sekiro.traverse((child) => {
+        if(child instanceof THREE.Mesh)
+        {
+            child.castShadow = true
+            child.receiveShadow = true
+        }
+    })
+    scene.add(sekiro)
+})
 
 /**
  * Renderer
@@ -189,9 +162,6 @@ const tick = () =>
     const elapsedTime = clock.getElapsedTime()
     const deltaTime = elapsedTime - lastElapsedTime
     lastElapsedTime = elapsedTime
-
-    plane.material.uniforms.uTime.value = elapsedTime * 0.3
-    plane.material.uniformsNeedUpdate = true
 
     // Update controls
     controls.update()
